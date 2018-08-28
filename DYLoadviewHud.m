@@ -26,6 +26,7 @@ float _fromValue;
 
 float _scaletoValue;
 float _scalefromValue;
+CADisplayLink *displayLink;
 
 UILabel *_label;
 }
@@ -156,25 +157,41 @@ UILabel *_label;
         
         self.loadView.alpha=1;
         
-        //        self.displayLink = [CADisplayLink displayLinkWithTarget:self
-        //                                                       selector:@selector(handleDisplayLink:)];
-        //        [self.displayLink addToRunLoop:[NSRunLoop currentRunLoop]
-        //                               forMode:NSDefaultRunLoopMode];
-        
-        _timer = [NSTimer scheduledTimerWithTimeInterval:ANIMATION_DURATION_SECS target:self selector:@selector(animateNextStep) userInfo:nil repeats:YES];
-        [[NSRunLoop currentRunLoop] addTimer:_timer forMode:NSDefaultRunLoopMode];
+        /*
+         *解决定时器载UIScrollView中失效三种方式1: 2:添加到运行循环 3:把定时间加到子线程
+         *
+         */
+        //1.0
+        displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(animateNextStep)];
+        // 每隔1帧调用一次
+        displayLink.frameInterval = 30;
+        [displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+        //2.0
+        //        _timer = [NSTimer scheduledTimerWithTimeInterval:ANIMATION_DURATION_SECS target:self selector:@selector(animateNextStep) userInfo:nil repeats:YES];
+        //        [[NSRunLoop currentRunLoop] addTimer:_timer forMode:NSRunLoopCommonModes];
+        //3.0
+        //  [NSThread detachNewThreadSelector:@selector(threadStart) toTarget:self withObject:nil];
+
     }
     
 }
 
+- (void)threadStart{
+    _timer = [NSTimer scheduledTimerWithTimeInterval:ANIMATION_DURATION_SECS target:self selector:@selector(animateNextStep) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:_timer forMode:NSDefaultRunLoopMode];
+}
 
 -(void) stopAnimating
 {
     
     _isAnimating = NO;
     
-    [_timer invalidate];
+    //[_timer invalidate];
     
+    [displayLink invalidate];
+    
+    displayLink = nil;
+
     _stepNumber = 0;
     
     self.loadView.alpha=0;
