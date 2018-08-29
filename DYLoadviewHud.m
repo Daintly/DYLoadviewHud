@@ -14,7 +14,7 @@
 
 @property (nonatomic, assign) int stepNumber;
 @property (nonatomic, assign) BOOL isAnimating;
-@property (nonatomic, strong) NSTimer *timer;
+//@property (nonatomic, strong) NSTimer *timer;
 
 @property (nonatomic, strong) UIView *loadView;
 @end
@@ -162,7 +162,8 @@ UILabel *_label;
          *
          */
         //1.0
-        displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(animateNextStep)];
+        __weak typedef(self) weakself = self;
+        displayLink = [CADisplayLink displayLinkWithTarget:weakself selector:@selector(animateNextStep)];
         // 每隔1帧调用一次
         displayLink.frameInterval = 30;
         [displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
